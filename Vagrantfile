@@ -2,8 +2,8 @@
 # vi: set ft=ruby :
 
 VAGRANTFILE_API_VERSION = "2"
-CASSANDRA_VERSION = "2.1.0"
-CHEF_VERSION = "11.16.0"
+CASSANDRA_VERSION = "2.1.20"
+CHEF_VERSION = "12.22.5"
 
 BOX = "opscode_ubuntu-14.04_chef-provisionerless"
 BOX_URL = "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box"
@@ -31,11 +31,11 @@ INSTANCES.times do |i|
   SEEDS << addr
 end
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|  
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   NODES.each do |n|
     config.vm.define n['name'] do |node|
       node.vm.box = BOX
-      node.vm.box_url = BOX_URL      
+      node.vm.box_url = BOX_URL
       node.omnibus.chef_version = CHEF_VERSION
       node.vm.network :private_network, ip: n['addr']
       node.vm.hostname = n['hostname']
@@ -48,16 +48,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         chef.cookbooks_path = ["chef/cookbooks", "chef/site-cookbooks"]
         chef.roles_path = "chef/roles"
         chef.data_bags_path = "chef/data_bags"
-        chef.add_recipe "apt"  
+        chef.add_recipe "apt"
         chef.add_recipe "java"
         chef.add_recipe "ufw::disable"
         chef.add_recipe "cassandra::tarball"
         chef.json = {
           :java =>  {
             'install_flavor' => 'oracle',
-            'jdk_version' => '7',
+            'jdk_version' => '8',
             'oracle' => {
-              'accept_oracle_download_terms' => true
+                'accept_oracle_download_terms' => true
             }
           },
           :cassandra => {
@@ -67,13 +67,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             'broadcast_address' => n['addr'],
             'rpc_address' => '0.0.0.0',
             'vnodes' => VNODES,
-            'cluster_name' => CLUSTER_NAME  
-          }  
-        }        
+            'cluster_name' => CLUSTER_NAME
+          }
+        }
       end
+
+      node.vm.provision "shell", inline: <<-SHELL
+      LINE='PATH=$PATH:/usr/local/cassandra/bin'
+      FILE=/home/vagrant/.bashrc
+      grep -qF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+      (cd /usr/local/cassandra/lib && sudo ln -sf jamm-0.3.0.jar jamm-0.2.6.jar && sudo chown -h cassandra:cassandra jamm-0.2.6.jar)
+      SHELL
       # Bind port configuration not detected until restart for unknown reasons
       # use shell provisioner as workaround
-      # node.vm.provision :shell, :inline => "sudo service cassandra restart"
+      node.vm.provision :shell, :inline => "sudo service cassandra restart"
     end
   end
 end

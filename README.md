@@ -4,7 +4,7 @@ This is a sample project to show how to get a simple Cassandra cluster up and ru
 
 ## Acknowledgement
 
-I borrowed ideas from an earlier project on github [vagrant-cassandra](https://github.com/calebgroom/vagrant-cassandra).  The Vagrant code style was highly influenced by [mcollective-vagrant](https://github.com/ripienaar/mcollective-vagrant).
+It is a modified [vagrant-cassandra](https://github.com/dholbrook/vagrant-cassandra) project.
 
 ## Prerequisites
 
@@ -13,32 +13,27 @@ I borrowed ideas from an earlier project on github [vagrant-cassandra](https://g
 * [librarian-chef](https://github.com/applicationsonline/librarian-chef)
 * [vagrant-omnibus](https://github.com/schisamo/vagrant-omnibus)
 
-## Usage
+## First usage
 
-The first time you use this you need to installed the required chef recipes with `librarian-chef`.
-
-    $librarian-chef install
-	Installing chef_handler (1.1.6)
-	Installing windows (1.34.2)
-	Installing 7-zip (1.0.2)
-	Installing apt (2.6.0)
-	Installing ark (0.9.0)
-	Installing java (1.28.0)
-	Installing ulimit (0.3.2)
-	Installing yum (3.3.2)
-	Installing cassandra (2.8.0)
-	Installing firewall (0.11.8)
-	Installing ufw (0.7.4)
+    (install latest Ruby)
+    vagrant plugin install vagrant-omnibus
+    gem install librarian-chef
+    librarian-chef install
+    vagrant up
+    
+Instead of `vagrant up` you can use `provision-parallel` script for faster provisioning.
+However, sometimes there is a race condition which results in failure in provisioning one of the VMs.
+You can then retry provisioning only that failed VM by executing `vagrant up <node> --provision`.
     
 After that you should be able to interact with the Cassandra nodes.
  
     vagrant@node2:~$ cqlsh
     Connected to Test Cluster at 127.0.0.1:9042.
-    [cqlsh 5.0.1 | Cassandra 2.1.0 | CQL spec 3.2.0 | Native protocol v3]
+    [cqlsh 5.0.1 | Cassandra 2.1.20 | CQL spec 3.2.1 | Native protocol v3]
     Use HELP for help.
     cqlsh>
 	
-    vagrant@node2:~$ /usr/local/cassandra/bin/nodetool status
+    vagrant@node2:~$ nodetool status
     Datacenter: datacenter1
     =======================
     Status=Up/Down
@@ -48,7 +43,25 @@ After that you should be able to interact with the Cassandra nodes.
     UN  192.168.200.13  111.8 KB   256     66.9%             c8e91f28-42d2-452e-8b27-311e70b34987  rack1
     UN  192.168.200.12  122.65 KB  256     67.4%             f5ceccc8-3e40-406b-9a7c-92c1b6cb4bb5  rack1
     
-##Changelog
+## Basic Vagrant commands
+* `vagrant up` - boots up all VMs (and provisions them if it's their first boot)
+* `vagrant up <node>` - boots up only the specified node (there are `node1`, `node2` and `node3`)
+* `vagrant halt` - gracefully shutdowns all VMs
+* `vagrant halt <node>` - gracefully shutdowns only the specified node
+* `vagrant provision` - applies changes from `Vagrantfile`
+* `vagrant ssh <node>` - logs to the specified node via SSH
+
+Partitions may be simulated by SSH-ing to particular node(s) and bringing down `eth1` interface. Unplugging the network cable from VirtualBox GUI or VBoxManage should yield the same result.
+    
+## Changelog
+
+**2018-12-08**
+
+* update Cassandra from 2.1.0 to 2.1.20
+* update Oracle JDK7 to Oracle JDK 8
+* update java cookbook
+* add cassandra binaries to PATH
+* add parallel provisioning scripts for Windows and Unix
 
 **2014-10-11**
 

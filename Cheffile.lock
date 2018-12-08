@@ -9,7 +9,10 @@ SITE
       windows (>= 0.0.0)
     chef_handler (1.1.6)
     firewall (0.11.8)
-    java (1.28.0)
+    homebrew (5.0.8)
+    java (3.1.1)
+      homebrew (>= 0.0.0)
+      windows (>= 0.0.0)
     ufw (0.7.4)
       firewall (>= 0.9.0)
     ulimit (0.3.2)
@@ -32,6 +35,6 @@ GIT
 DEPENDENCIES
   apt (>= 2.6.0)
   cassandra (>= 0)
-  java (>= 1.28.0)
+  java (>= 3.1.1)
   ufw (>= 0.7.4)
 

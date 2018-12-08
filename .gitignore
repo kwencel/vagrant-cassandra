@@ -1,3 +1,6 @@
 /chef/cookbooks
 /tmp
 /.vagrant
+/logs
+.idea
+*.iml
